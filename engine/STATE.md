@@ -2,7 +2,7 @@
 
 ## 当前任务
 
-任务：拍照识别功能（recognize）
+任务：错题管理增强（question-management）
 
 Profile：feature
 
@@ -10,7 +10,7 @@ Profile：feature
 
 已通过 Gates：G1, G2, G3, G4
 
-开始时间：2026-06-27
+开始时间：2026-06-28
 
 最后更新时间：2026-06-28
 
@@ -30,15 +30,14 @@ Profile：feature
 
 ## G3 通过记录
 
-- [x] 代码文件存在（app/recognition/*.py）
-- [x] 测试存在且通过（22 tests passed）
-- [x] lint 通过（python3 -m py_compile 全部成功）
-- [x] 无硬编码 secrets（gate check passed）
-- [x] AWS 部署成功，集成测试全部通过
-- [x] Bedrock 识别端到端调用成功
+- [x] 代码文件存在（app/recognition/api.py, db.py 新增端点和函数）
+- [x] 前端代码存在（frontend/index.html 重设计）
+- [x] 测试通过（22 tests passed）
+- [x] 基础质量 Gate 通过
+- [x] 无硬编码 secrets
+- [x] AWS 部署成功
+- [x] 新增 ADR-005 已记录
 
-## 完成记录
+## 上一个已完成任务
 
-- G4 通过，任务完成。
-- 22 单元测试通过，5 集成测试通过，12 种主动破坏尝试全部按预期处理。
-- 已部署至 AWS Lambda + API Gateway，Bedrock 端到端调用成功。
+任务：拍照识别功能（recognize）— DONE，G1-G4 全部通过。

@@ -9,11 +9,40 @@ from boto3.dynamodb.conditions import Key
 
 TABLE_NAME = "cuotiben-questions"
 REGION = "us-east-1"
+IMAGE_BUCKET = "cuotiben-frontend-375297"
+IMAGE_PREFIX = "images/"
 
 
 def _get_table():
     dynamodb = boto3.resource("dynamodb", region_name=REGION)
     return dynamodb.Table(TABLE_NAME)
+
+
+def _get_s3():
+    return boto3.client("s3", region_name=REGION)
+
+
+def upload_image(question_id: str, image_bytes: bytes, content_type: str = "image/jpeg") -> str:
+    s3 = _get_s3()
+    key = f"{IMAGE_PREFIX}{question_id}.jpg"
+    if content_type == "image/png":
+        key = f"{IMAGE_PREFIX}{question_id}.png"
+    s3.put_object(
+        Bucket=IMAGE_BUCKET,
+        Key=key,
+        Body=image_bytes,
+        ContentType=content_type,
+    )
+    return f"http://{IMAGE_BUCKET}.s3-website-us-east-1.amazonaws.com/{key}"
+
+
+def update_image_url(question_id: str, image_url: str) -> None:
+    table = _get_table()
+    table.update_item(
+        Key={"question_id": question_id},
+        UpdateExpression="SET image_url = :url",
+        ExpressionAttributeValues={":url": image_url},
+    )
 
 
 def save_question(
@@ -25,6 +54,7 @@ def save_question(
     raw_model_output_id: str,
     subject: Optional[str] = None,
     grade: Optional[str] = None,
+    image_url: Optional[str] = None,
 ) -> dict:
     table = _get_table()
     question_id = f"q_{uuid.uuid4().hex[:12]}"
@@ -45,6 +75,7 @@ def save_question(
         "review_count": 0,
         "correct_streak": 0,
         "mastery": "unmastered",
+        "image_url": image_url or "",
     }
     table.put_item(Item=item)
     return item
@@ -153,3 +184,36 @@ def record_review_result(question_id: str, correct: bool) -> Optional[dict]:
         ReturnValues="ALL_NEW",
     )
     return response.get("Attributes")
+
+
+def edit_question(
+    question_id: str,
+    question_text: str,
+    answer: Optional[str],
+    knowledge_points: list[str],
+) -> Optional[dict]:
+    table = _get_table()
+    now = int(time.time())
+    response = table.update_item(
+        Key={"question_id": question_id},
+        UpdateExpression=(
+            "SET question_text = :qt, answer = :ans, knowledge_points = :kp, updated_at = :now"
+        ),
+        ExpressionAttributeValues={
+            ":qt": question_text,
+            ":ans": answer or "",
+            ":kp": knowledge_points,
+            ":now": now,
+        },
+        ReturnValues="ALL_NEW",
+    )
+    return response.get("Attributes")
+
+
+def batch_delete_questions(question_ids: list[str]) -> int:
+    table = _get_table()
+    deleted = 0
+    for qid in question_ids:
+        table.delete_item(Key={"question_id": qid})
+        deleted += 1
+    return deleted

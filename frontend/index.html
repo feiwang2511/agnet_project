@@ -5,148 +5,236 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>错题本</title>
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #eef2ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+            --shadow: 0 4px 12px rgba(0,0,0,.08);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,.12);
+            --radius: 12px;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7fa; min-height: 100vh; }
-        .tabs { display: flex; background: white; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 10; }
-        .tab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; transition: all .2s; }
-        .tab.active { color: #4f46e5; border-bottom-color: #4f46e5; }
-        .page { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; background: var(--gray-50); min-height: 100vh; color: var(--gray-900); }
+
+        .header { background: white; padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: center; }
+        .header h1 { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, var(--primary), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .tabs { display: flex; background: white; border-bottom: 1px solid var(--gray-200); position: sticky; top: 0; z-index: 100; }
+        .tab { flex: 1; padding: 14px 8px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gray-500); border-bottom: 2.5px solid transparent; transition: all .2s; }
+        .tab:hover { color: var(--primary); background: var(--primary-light); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .page { display: none; padding: 16px; max-width: 680px; margin: 0 auto; }
         .page.active { display: block; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 12px; }
-        h2 { font-size: 18px; margin-bottom: 12px; color: #1a1a2e; }
-        .upload-area { border: 2px dashed #d0d5dd; border-radius: 8px; padding: 32px 16px; text-align: center; cursor: pointer; transition: all .2s; }
-        .upload-area:hover { border-color: #4f46e5; background: #f8f7ff; }
-        .upload-area.has-image { border-color: #10b981; background: #f0fdf4; padding: 8px; }
-        .preview-img { max-width: 100%; max-height: 200px; border-radius: 6px; }
-        .form-row { display: flex; gap: 10px; margin-top: 12px; }
-        .form-group { flex: 1; }
-        label { display: block; font-size: 12px; color: #666; margin-bottom: 3px; }
-        select, input, textarea { width: 100%; padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 14px; }
-        textarea { resize: vertical; min-height: 60px; }
-        .btn { display: block; width: 100%; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 14px; }
-        .btn:hover { background: #4338ca; }
-        .btn:disabled { background: #9ca3af; cursor: not-allowed; }
-        .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; display: inline-block; margin: 4px 4px 4px 0; }
-        .btn-green { background: #10b981; }
-        .btn-green:hover { background: #059669; }
-        .btn-red { background: #ef4444; }
-        .btn-red:hover { background: #dc2626; }
-        .btn-outline { background: white; color: #4f46e5; border: 1px solid #4f46e5; }
-        .btn-outline:hover { background: #f8f7ff; }
-        .loading::after { content: ""; display: inline-block; width: 14px; height: 14px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; margin-left: 8px; vertical-align: middle; }
+
+        .card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); margin-bottom: 16px; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .card-header h2 { font-size: 16px; font-weight: 600; }
+
+        .upload-area { border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 40px 20px; text-align: center; cursor: pointer; transition: all .2s; }
+        .upload-area:hover { border-color: var(--primary); background: var(--primary-light); }
+        .upload-area.has-image { border-style: solid; border-color: var(--success); padding: 8px; }
+        .upload-icon { font-size: 40px; margin-bottom: 8px; }
+        .upload-text { color: var(--gray-500); font-size: 13px; line-height: 1.6; }
+        .preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; display: block; margin: 0 auto; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+        label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-500); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .3px; }
+        select, input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 14px; transition: border-color .2s; background: white; }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+        textarea { resize: vertical; min-height: 70px; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; padding: 12px; margin-top: 16px; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow); }
+        .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; transform: none; }
+        .btn-sm { padding: 7px 14px; font-size: 12px; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-outline { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
+        .btn-outline:hover { background: var(--primary-light); }
+        .btn-ghost { background: transparent; color: var(--gray-500); padding: 6px 10px; }
+        .btn-ghost:hover { background: var(--gray-100); color: var(--gray-700); }
+        .loading::after { content: ""; display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; margin-left: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-        .badge-confirmed { background: #dcfce7; color: #166534; }
-        .badge-needs { background: #fef3c7; color: #92400e; }
+
+        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-confirmed { background: var(--success-light); color: #065f46; }
+        .badge-needs { background: var(--warning-light); color: #92400e; }
         .badge-mastered { background: #dbeafe; color: #1e40af; }
-        .question-item { border-bottom: 1px solid #f0f0f0; padding: 12px 0; }
-        .question-item:last-child { border-bottom: none; }
-        .q-text { font-size: 14px; color: #1a1a2e; margin-bottom: 6px; }
-        .q-meta { font-size: 12px; color: #999; }
-        .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-        .tag { background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-        .conf-bar { height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 4px; width: 80px; display: inline-block; }
-        .conf-fill { height: 100%; border-radius: 2px; }
-        .empty { text-align: center; padding: 40px 20px; color: #999; }
-        .review-card { text-align: center; }
-        .review-card .q-text { font-size: 18px; margin: 20px 0; }
+
+        .q-card { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; transition: all .15s; }
+        .q-card:hover { box-shadow: var(--shadow); border-color: var(--gray-300); }
+        .q-card.selected { border-color: var(--primary); background: var(--primary-light); }
+        .q-card-top { display: flex; gap: 12px; }
+        .q-thumb { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; background: var(--gray-100); flex-shrink: 0; cursor: pointer; }
+        .q-thumb-placeholder { width: 72px; height: 72px; border-radius: 8px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; color: var(--gray-300); font-size: 24px; flex-shrink: 0; }
+        .q-content { flex: 1; min-width: 0; }
+        .q-text { font-size: 14px; color: var(--gray-900); line-height: 1.5; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .q-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .q-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .tag { background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+        .q-actions { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gray-100); }
+
+        .checkbox { width: 18px; height: 18px; border: 2px solid var(--gray-300); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+        .checkbox.checked { background: var(--primary); border-color: var(--primary); }
+        .checkbox.checked::after { content: "\2713"; color: white; font-size: 12px; font-weight: bold; }
+
+        .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px 14px; background: white; border-radius: 8px; border: 1px solid var(--gray-200); }
+        .toolbar-left { display: flex; align-items: center; gap: 10px; }
+        .toolbar-right { display: flex; gap: 8px; align-items: center; }
+        .select-count { font-size: 13px; color: var(--gray-500); }
+
+        .edit-form { margin-top: 12px; padding: 14px; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--gray-200); }
+        .edit-form label { margin-top: 8px; }
+        .edit-form label:first-child { margin-top: 0; }
+        .edit-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+        .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .lightbox.show { display: flex; }
+        .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 8px; box-shadow: var(--shadow-lg); }
+        .lightbox-close { position: absolute; top: 16px; right: 20px; color: white; font-size: 28px; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,.1); }
+
+        .review-card { text-align: center; padding: 20px 0; }
+        .review-img { max-width: 100%; max-height: 200px; border-radius: var(--radius); margin: 16px auto; display: block; box-shadow: var(--shadow); cursor: pointer; }
+        .review-question { font-size: 17px; line-height: 1.6; margin: 16px 0; padding: 16px; background: var(--gray-50); border-radius: 8px; text-align: left; }
+        .review-answer { margin: 16px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0; font-size: 15px; }
+        .review-progress { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; }
         .review-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
-        .review-actions .btn { width: auto; padding: 12px 32px; }
-        .streak-info { font-size: 13px; color: #666; margin-top: 8px; }
-        .result-box { margin-top: 12px; padding: 12px; border-radius: 8px; }
+        .review-actions .btn { min-width: 120px; }
+        .streak-dots { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gray-200); }
+        .dot.filled { background: var(--success); }
+
+        .result-box { margin-top: 14px; padding: 14px; border-radius: 8px; font-size: 14px; }
         .result-success { background: #f0fdf4; border: 1px solid #bbf7d0; }
         .result-error { background: #fef2f2; border: 1px solid #fecaca; }
+
+        .empty { text-align: center; padding: 48px 20px; color: var(--gray-500); }
+        .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: .5; }
+        .empty-text { font-size: 14px; line-height: 1.6; }
+
+        .filter-select { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--gray-200); background: white; }
+
         #fileInput { display: none; }
         .hidden { display: none; }
-        .confirm-form { margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; }
+            .q-thumb, .q-thumb-placeholder { width: 56px; height: 56px; }
+        }
     </style>
 </head>
 <body>
+    <div class="header"><h1>错题本</h1></div>
+
     <div class="tabs">
         <div class="tab active" onclick="switchTab('recognize')">📷 拍照识别</div>
         <div class="tab" onclick="switchTab('questions')">📋 错题管理</div>
         <div class="tab" onclick="switchTab('review')">📖 复习</div>
     </div>
 
-    <!-- Page 1: Recognize -->
     <div class="page active" id="page-recognize">
         <div class="card">
-            <h2>拍照识别</h2>
+            <div class="card-header"><h2>拍照识别题目</h2></div>
             <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                <div style="font-size:36px;margin-bottom:8px">📄</div>
-                <div style="color:#666;font-size:13px">点击或拖拽上传题目图片<br><small>JPEG / PNG，最大 10MB</small></div>
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">点击上传或拖拽图片到这里<br><small>支持 JPEG / PNG，最大 10MB</small></div>
             </div>
             <input type="file" id="fileInput" accept="image/jpeg,image/png">
             <div class="form-row">
-                <div class="form-group">
+                <div>
                     <label>学科</label>
                     <select id="subject">
-                        <option value="">不指定</option>
                         <option value="math" selected>数学</option>
                         <option value="physics">物理</option>
                         <option value="chemistry">化学</option>
                         <option value="english">英语</option>
+                        <option value="">不指定</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div>
                     <label>年级</label>
                     <select id="grade">
-                        <option value="">不指定</option>
                         <option value="grade_7" selected>七年级</option>
                         <option value="grade_8">八年级</option>
                         <option value="grade_9">九年级</option>
+                        <option value="">不指定</option>
                     </select>
                 </div>
             </div>
-            <button class="btn" id="recognizeBtn" disabled onclick="doRecognize()">开始识别</button>
+            <button class="btn btn-primary" id="recognizeBtn" disabled onclick="doRecognize()">开始识别</button>
             <div id="recognizeResult"></div>
         </div>
     </div>
 
-    <!-- Page 2: Question Management -->
     <div class="page" id="page-questions">
-        <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                <h2 style="margin:0">错题列表</h2>
-                <select id="statusFilter" onchange="loadQuestions()" style="width:auto;padding:6px 10px;font-size:13px">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <div class="checkbox" id="selectAll" onclick="toggleSelectAll()"></div>
+                <span class="select-count" id="selectCount">选择题目</span>
+            </div>
+            <div class="toolbar-right">
+                <select class="filter-select" id="statusFilter" onchange="loadQuestions()">
                     <option value="">全部</option>
                     <option value="needs_confirmation">待确认</option>
                     <option value="confirmed">已确认</option>
                 </select>
+                <button class="btn btn-sm btn-danger hidden" id="batchDeleteBtn" onclick="batchDelete()">删除选中</button>
             </div>
-            <div id="questionsList"><div class="empty">加载中...</div></div>
+        </div>
+        <div id="questionsList"></div>
+    </div>
+
+    <div class="page" id="page-review">
+        <div class="card" id="reviewCard">
+            <div class="card-header"><h2>复习错题</h2></div>
+            <div id="reviewContent"><div class="empty"><div class="empty-icon">📖</div><div class="empty-text">加载中...</div></div></div>
         </div>
     </div>
 
-    <!-- Page 3: Review -->
-    <div class="page" id="page-review">
-        <div class="card" id="reviewCard">
-            <h2>复习错题</h2>
-            <div id="reviewContent"><div class="empty">加载中...</div></div>
-        </div>
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <div class="lightbox-close">&times;</div>
+        <img id="lightboxImg" src="">
     </div>
 
     <script>
     const API = "https://hrlx9t2lub.execute-api.us-east-1.amazonaws.com/prod";
     let imageBase64 = null;
+    let selectedIds = new Set();
 
-    // --- Tab switching ---
     function switchTab(name) {
         document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['recognize','questions','review'][i]===name));
         document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-'+name));
-        if (name === 'questions') loadQuestions();
+        if (name === 'questions') { selectedIds.clear(); updateSelectUI(); loadQuestions(); }
         if (name === 'review') loadReview();
     }
 
-    // --- File upload ---
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
-    uploadArea.addEventListener('dragover', e => { e.preventDefault(); });
-    uploadArea.addEventListener('drop', e => { e.preventDefault(); if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor='var(--primary)'; });
+    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor=''; });
+    uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.style.borderColor=''; if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
     fileInput.addEventListener('change', e => { if(e.target.files.length) handleFile(e.target.files[0]); });
 
     function handleFile(file) {
-        if (!file.type.match(/^image\/(jpeg|png)$/)) return alert('请上传 JPEG 或 PNG');
+        if (!file.type.match(/^image\/(jpeg|png)$/)) return alert('请上传 JPEG 或 PNG 格式');
         if (file.size > 10*1024*1024) return alert('图片不能超过 10MB');
         const reader = new FileReader();
         reader.onload = e => {
@@ -159,7 +247,6 @@
         reader.readAsDataURL(file);
     }
 
-    // --- Recognize ---
     async function doRecognize() {
         if (!imageBase64) return;
         const btn = document.getElementById('recognizeBtn');
@@ -169,21 +256,19 @@
         const grade = document.getElementById('grade').value;
         if (subject) body.subject = subject;
         if (grade) body.grade = grade;
-
         try {
             const resp = await fetch(`${API}/recognize`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
             const data = await resp.json();
             if (resp.ok) {
                 document.getElementById('recognizeResult').innerHTML = `
                     <div class="result-box result-success">
-                        <strong>识别成功！</strong><br>
-                        <div style="margin-top:8px"><b>题目：</b>${esc(data.question_text)}</div>
-                        ${data.answer ? `<div><b>答案：</b>${esc(data.answer)}</div>` : ''}
-                        <div><b>知识点：</b>${(data.knowledge_points||[]).join('、')}</div>
-                        <div><b>置信度：</b>${Math.round(data.confidence*100)}% ·
-                            <span class="badge ${data.status==='confirmed'?'badge-confirmed':'badge-needs'}">${data.status==='confirmed'?'已确认':'待确认'}</span>
+                        <div style="font-weight:600;margin-bottom:8px">识别成功</div>
+                        <div style="margin-bottom:4px"><strong>题目：</strong>${esc(data.question_text)}</div>
+                        ${data.answer ? `<div style="margin-bottom:4px"><strong>答案：</strong>${esc(data.answer)}</div>` : ''}
+                        <div style="margin-bottom:4px"><strong>知识点：</strong>${(data.knowledge_points||[]).join('、')}</div>
+                        <div><strong>置信度：</strong>${Math.round(data.confidence*100)}%
+                            <span class="badge ${data.status==='confirmed'?'badge-confirmed':'badge-needs'}" style="margin-left:6px">${data.status==='confirmed'?'已确认':'待确认'}</span>
                         </div>
-                        <div style="margin-top:8px;font-size:12px;color:#666">已保存，可在"错题管理"中查看</div>
                     </div>`;
             } else {
                 document.getElementById('recognizeResult').innerHTML = `<div class="result-box result-error"><strong>识别失败：</strong>${data.error?.message || '未知错误'}</div>`;
@@ -194,59 +279,129 @@
         btn.disabled = false; btn.classList.remove('loading'); btn.textContent = '重新识别';
     }
 
-    // --- Questions Management ---
+    let allQuestions = [];
+
     async function loadQuestions() {
         const filter = document.getElementById('statusFilter').value;
         const url = filter ? `${API}/questions?status=${filter}` : `${API}/questions`;
         try {
             const resp = await fetch(url);
             const data = await resp.json();
-            renderQuestions(data.questions || []);
+            allQuestions = data.questions || [];
+            renderQuestions();
         } catch(e) {
-            document.getElementById('questionsList').innerHTML = `<div class="empty">加载失败</div>`;
+            document.getElementById('questionsList').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">加载失败</div></div>`;
         }
     }
 
-    function renderQuestions(questions) {
-        if (!questions.length) {
-            document.getElementById('questionsList').innerHTML = `<div class="empty">暂无错题<br><small>去"拍照识别"添加吧</small></div>`;
+    function renderQuestions() {
+        if (!allQuestions.length) {
+            document.getElementById('questionsList').innerHTML = `<div class="empty"><div class="empty-icon">📝</div><div class="empty-text">暂无错题<br>去"拍照识别"添加吧</div></div>`;
             return;
         }
         let html = '';
-        for (const q of questions) {
-            const badge = q.status === 'confirmed'
-                ? '<span class="badge badge-confirmed">已确认</span>'
-                : '<span class="badge badge-needs">待确认</span>';
+        for (const q of allQuestions) {
+            const isSelected = selectedIds.has(q.question_id);
+            const badge = q.status === 'confirmed' ? '<span class="badge badge-confirmed">已确认</span>' : '<span class="badge badge-needs">待确认</span>';
             const mastery = q.mastery === 'mastered' ? ' <span class="badge badge-mastered">已掌握</span>' : '';
-            html += `<div class="question-item" id="qi-${q.question_id}">
-                <div class="q-text">${esc(q.question_text)} ${badge}${mastery}</div>
-                <div class="tags">${(q.knowledge_points||[]).map(k=>`<span class="tag">${esc(k)}</span>`).join('')}</div>
-                <div class="q-meta" style="margin-top:6px">
-                    ${q.answer ? '答案: '+esc(q.answer)+' · ' : ''}置信度: ${Math.round((q.confidence||0)*100)}%
-                    · 复习: ${q.review_count||0}次 · 连对: ${q.correct_streak||0}次
-                </div>
-                ${q.status === 'needs_confirmation' ? `
-                <div class="confirm-form" id="cf-${q.question_id}">
-                    <label>题目内容（可编辑）</label>
-                    <textarea id="ct-${q.question_id}">${esc(q.question_text)}</textarea>
-                    <label style="margin-top:8px">答案</label>
-                    <input id="ca-${q.question_id}" value="${esc(q.answer||'')}">
-                    <label style="margin-top:8px">知识点（逗号分隔）</label>
-                    <input id="ck-${q.question_id}" value="${(q.knowledge_points||[]).join(', ')}">
-                    <div style="margin-top:10px">
-                        <button class="btn btn-sm btn-green" onclick="confirmQ('${q.question_id}')">✓ 确认</button>
-                        <button class="btn btn-sm btn-red" onclick="discardQ('${q.question_id}')">✗ 放弃</button>
+            const thumb = q.image_url
+                ? `<img class="q-thumb" src="${q.image_url}" onclick="event.stopPropagation();openLightbox('${q.image_url}')" alt="题目图片">`
+                : `<div class="q-thumb-placeholder">📷</div>`;
+            html += `<div class="q-card ${isSelected?'selected':''}" id="qc-${q.question_id}">
+                <div class="q-card-top">
+                    <div class="checkbox ${isSelected?'checked':''}" onclick="toggleSelect('${q.question_id}')"></div>
+                    ${thumb}
+                    <div class="q-content">
+                        <div class="q-text">${esc(q.question_text)}</div>
+                        <div class="q-meta">${badge}${mastery}
+                            <span style="font-size:11px;color:var(--gray-500)">置信 ${Math.round((parseFloat(q.confidence)||0)*100)}%</span>
+                        </div>
+                        <div class="q-tags">${(q.knowledge_points||[]).map(k=>`<span class="tag">${esc(k)}</span>`).join('')}</div>
                     </div>
-                </div>` : ''}
+                </div>
+                <div class="q-actions">
+                    ${q.status === 'needs_confirmation' ? `
+                        <button class="btn btn-sm btn-success" onclick="showEditForm('${q.question_id}')">确认</button>
+                        <button class="btn btn-sm btn-danger" onclick="discardQ('${q.question_id}')">放弃</button>
+                    ` : `
+                        <button class="btn btn-sm btn-outline" onclick="showEditForm('${q.question_id}')">编辑</button>
+                    `}
+                </div>
+                <div class="edit-form hidden" id="ef-${q.question_id}">
+                    <label>题目内容</label>
+                    <textarea id="et-${q.question_id}">${esc(q.question_text)}</textarea>
+                    <label>答案</label>
+                    <input id="ea-${q.question_id}" value="${esc(q.answer||'')}">
+                    <label>知识点（逗号分隔）</label>
+                    <input id="ek-${q.question_id}" value="${(q.knowledge_points||[]).join(', ')}">
+                    <div class="edit-actions">
+                        <button class="btn btn-sm btn-success" onclick="${q.status==='needs_confirmation'?'confirmQ':'editQ'}('${q.question_id}')">保存</button>
+                        <button class="btn btn-sm btn-ghost" onclick="hideEditForm('${q.question_id}')">取消</button>
+                    </div>
+                </div>
             </div>`;
         }
         document.getElementById('questionsList').innerHTML = html;
     }
 
+    function showEditForm(id) { document.getElementById('ef-'+id).classList.remove('hidden'); }
+    function hideEditForm(id) { document.getElementById('ef-'+id).classList.add('hidden'); }
+
+    function toggleSelect(id) {
+        if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+        renderQuestions();
+        updateSelectUI();
+    }
+
+    function toggleSelectAll() {
+        if (selectedIds.size === allQuestions.length) selectedIds.clear();
+        else allQuestions.forEach(q => selectedIds.add(q.question_id));
+        renderQuestions();
+        updateSelectUI();
+    }
+
+    function updateSelectUI() {
+        const allEl = document.getElementById('selectAll');
+        const countEl = document.getElementById('selectCount');
+        const delBtn = document.getElementById('batchDeleteBtn');
+        allEl.classList.toggle('checked', selectedIds.size > 0 && selectedIds.size === allQuestions.length);
+        countEl.textContent = selectedIds.size > 0 ? `已选 ${selectedIds.size} 题` : '选择题目';
+        if (selectedIds.size > 0) delBtn.classList.remove('hidden'); else delBtn.classList.add('hidden');
+    }
+
+    async function batchDelete() {
+        if (!selectedIds.size) return;
+        if (!confirm(`确定删除选中的 ${selectedIds.size} 道题吗？此操作不可恢复。`)) return;
+        try {
+            const resp = await fetch(`${API}/questions/batch-delete`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ question_ids: [...selectedIds] })
+            });
+            if (resp.ok) { selectedIds.clear(); updateSelectUI(); loadQuestions(); }
+            else alert('删除失败');
+        } catch(e) { alert('网络错误'); }
+    }
+
+    async function editQ(id) {
+        const text = document.getElementById('et-'+id).value.trim();
+        const answer = document.getElementById('ea-'+id).value.trim();
+        const kps = document.getElementById('ek-'+id).value.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
+        if (!text) return alert('题目内容不能为空');
+        if (!kps.length) return alert('至少输入一个知识点');
+        try {
+            const resp = await fetch(`${API}/questions/${id}`, {
+                method:'PUT', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ question_text: text, answer: answer||null, knowledge_points: kps })
+            });
+            if (resp.ok) loadQuestions();
+            else alert('保存失败');
+        } catch(e) { alert('网络错误'); }
+    }
+
     async function confirmQ(id) {
-        const text = document.getElementById('ct-'+id).value.trim();
-        const answer = document.getElementById('ca-'+id).value.trim();
-        const kps = document.getElementById('ck-'+id).value.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
+        const text = document.getElementById('et-'+id).value.trim();
+        const answer = document.getElementById('ea-'+id).value.trim();
+        const kps = document.getElementById('ek-'+id).value.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
         if (!text) return alert('题目内容不能为空');
         if (!kps.length) return alert('至少输入一个知识点');
         try {
@@ -267,7 +422,14 @@
         } catch(e) { alert('网络错误'); }
     }
 
-    // --- Review ---
+    function openLightbox(url) {
+        document.getElementById('lightboxImg').src = url;
+        document.getElementById('lightbox').classList.add('show');
+    }
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('show');
+    }
+
     let reviewList = [];
     let reviewIndex = 0;
     let showingAnswer = false;
@@ -281,42 +443,42 @@
             showingAnswer = false;
             renderReview();
         } catch(e) {
-            document.getElementById('reviewContent').innerHTML = `<div class="empty">加载失败</div>`;
+            document.getElementById('reviewContent').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">加载失败</div></div>`;
         }
     }
 
     function renderReview() {
         if (!reviewList.length) {
-            document.getElementById('reviewContent').innerHTML = `<div class="empty">🎉 没有需要复习的题目<br><small>已确认的错题会出现在这里</small></div>`;
+            document.getElementById('reviewContent').innerHTML = `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">全部掌握！没有需要复习的题目<br><small>已确认的错题会出现在这里</small></div></div>`;
             return;
         }
         const q = reviewList[reviewIndex];
-        const progress = `${reviewIndex+1} / ${reviewList.length}`;
+        const streak = parseInt(q.correct_streak) || 0;
+        const dots = Array.from({length:3}, (_,i) => `<div class="dot ${i<streak?'filled':''}"></div>`).join('');
+        const imgHtml = q.image_url ? `<img class="review-img" src="${q.image_url}" onclick="openLightbox('${q.image_url}')">` : '';
+
         document.getElementById('reviewContent').innerHTML = `
             <div class="review-card">
-                <div class="q-meta">${progress} · ${(q.knowledge_points||[]).join('、')}</div>
-                <div class="q-text">${esc(q.question_text)}</div>
-                <div class="streak-info">已连续答对 ${q.correct_streak||0} 次（3次掌握）</div>
+                <div class="review-progress">${reviewIndex+1} / ${reviewList.length}</div>
+                ${imgHtml}
+                <div class="review-question">${esc(q.question_text)}</div>
+                <div class="q-tags" style="justify-content:center">${(q.knowledge_points||[]).map(k=>`<span class="tag">${esc(k)}</span>`).join('')}</div>
+                <div class="streak-dots" title="连续答对 ${streak}/3 次">${dots}</div>
                 ${showingAnswer ? `
-                    <div style="margin:16px 0;padding:12px;background:#f8fafc;border-radius:8px;font-size:16px">
-                        <b>答案：</b>${esc(q.answer||'（未记录答案）')}
-                    </div>
+                    <div class="review-answer"><strong>答案：</strong>${esc(q.answer||'（未记录）')}</div>
                     <div class="review-actions">
-                        <button class="btn btn-sm btn-green" onclick="submitReview('${q.question_id}',true)">✓ 答对了</button>
-                        <button class="btn btn-sm btn-red" onclick="submitReview('${q.question_id}',false)">✗ 答错了</button>
+                        <button class="btn btn-success" onclick="submitReview('${q.question_id}',true)">✓ 答对了</button>
+                        <button class="btn btn-danger" onclick="submitReview('${q.question_id}',false)">✗ 答错了</button>
                     </div>
                 ` : `
                     <div class="review-actions">
-                        <button class="btn btn-sm btn-outline" onclick="showAnswer()">查看答案</button>
+                        <button class="btn btn-outline" onclick="showAnswer()" style="min-width:160px">查看答案</button>
                     </div>
                 `}
             </div>`;
     }
 
-    function showAnswer() {
-        showingAnswer = true;
-        renderReview();
-    }
+    function showAnswer() { showingAnswer = true; renderReview(); }
 
     async function submitReview(id, correct) {
         try {

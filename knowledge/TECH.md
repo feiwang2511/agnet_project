@@ -107,6 +107,14 @@
 - `recognition_unavailable`: Bedrock 超时、限流、权限失败或不可用。
 - `invalid_model_output`: Bedrock 返回缺字段、类型错误、confidence 越界或不可解析内容。
 
+### [ADR-005] 用户图片使用 S3 存储
+
+- 状态：已接受
+- 理由：DynamoDB 单 item 400KB 限制不适合存储图片；复用已有 S3 静态网站 bucket 无需额外配置公开访问。
+- 代价：图片公开可访问（无认证），适合当前无用户认证阶段；后续加认证需迁移到 CloudFront + signed URL。
+- 不可逆原因：图片 URL 格式被前端和 DynamoDB 记录引用后，变更路径会影响历史数据展示。
+- 判定标准：图片存储在 `s3://cuotiben-frontend-375297/images/{question_id}.{ext}`；DynamoDB 记录 `image_url` 字段。
+
 ## 错误处理约束
 
 - 图片为空、过大或格式不支持时，返回可判定的客户端错误。

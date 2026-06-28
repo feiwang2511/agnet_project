@@ -1,5 +1,6 @@
 """FastAPI router for all API endpoints."""
 
+import base64
 import json
 from decimal import Decimal
 from typing import Optional
@@ -45,6 +46,16 @@ class ConfirmRequestBody(BaseModel):
     knowledge_points: list[str]
 
 
+class EditRequestBody(BaseModel):
+    question_text: str
+    answer: Optional[str] = None
+    knowledge_points: list[str]
+
+
+class BatchDeleteBody(BaseModel):
+    question_ids: list[str]
+
+
 class ReviewResultBody(BaseModel):
     correct: bool
 
@@ -76,7 +87,7 @@ def recognize_endpoint(body: RecognizeRequestBody, request: Request):
             },
         )
 
-    # Save to DynamoDB
+    # Save to DynamoDB first
     saved = db.save_question(
         question_text=result.question_text,
         answer=result.answer,
@@ -87,17 +98,29 @@ def recognize_endpoint(body: RecognizeRequestBody, request: Request):
         subject=body.subject,
         grade=body.grade,
     )
+    question_id = saved["question_id"]
+
+    # Upload image to S3
+    image_url = ""
+    try:
+        image_bytes = base64.b64decode(body.image)
+        content_type = "image/png" if image_bytes[:4] == b"\x89PNG" else "image/jpeg"
+        image_url = db.upload_image(question_id, image_bytes, content_type)
+        db.update_image_url(question_id, image_url)
+    except Exception:
+        pass
 
     return JSONResponse(
         status_code=200,
         content={
-            "question_id": saved["question_id"],
+            "question_id": question_id,
             "question_text": result.question_text,
             "answer": result.answer,
             "knowledge_points": result.knowledge_points,
             "confidence": result.confidence,
             "status": result.status,
             "raw_model_output_id": result.raw_model_output_id,
+            "image_url": image_url,
         },
     )
 
@@ -134,6 +157,33 @@ def confirm_question(question_id: str, body: ConfirmRequestBody):
     if not updated:
         return JSONResponse(status_code=404, content={"error": "Question not found"})
     return _json_response(updated)
+
+
+@router.put("/questions/{question_id}")
+def edit_question(question_id: str, body: EditRequestBody):
+    if not body.knowledge_points:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "At least one knowledge point is required"},
+        )
+    item = db.get_question(question_id)
+    if not item:
+        return JSONResponse(status_code=404, content={"error": "Question not found"})
+    updated = db.edit_question(
+        question_id=question_id,
+        question_text=body.question_text,
+        answer=body.answer,
+        knowledge_points=body.knowledge_points,
+    )
+    return _json_response(updated)
+
+
+@router.post("/questions/batch-delete")
+def batch_delete_questions(body: BatchDeleteBody):
+    if not body.question_ids:
+        return JSONResponse(status_code=400, content={"error": "No question IDs provided"})
+    deleted = db.batch_delete_questions(body.question_ids)
+    return JSONResponse(status_code=200, content={"deleted": deleted})
 
 
 @router.post("/questions/{question_id}/discard")
