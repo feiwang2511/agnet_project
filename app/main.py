@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth.api import router as auth_router
 from app.recognition.api import router as recognition_router
 from app.recognition.bedrock_provider import BedrockRecognitionProvider
 
@@ -15,6 +16,7 @@ def create_app(provider=None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.include_router(auth_router)
     app.include_router(recognition_router)
 
     if provider is None:

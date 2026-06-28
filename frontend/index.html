@@ -106,6 +106,31 @@
         .edit-form label:first-child { margin-top: 0; }
         .edit-actions { display: flex; gap: 8px; margin-top: 12px; }
 
+        /* Auth Screen */
+        .auth-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .auth-screen.hidden { display: none; }
+        .auth-card { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 380px; box-shadow: var(--shadow-lg); }
+        .auth-title { text-align: center; font-size: 24px; font-weight: 700; margin-bottom: 4px; color: var(--gray-900); }
+        .auth-subtitle { text-align: center; font-size: 13px; color: var(--gray-500); margin-bottom: 24px; }
+        .auth-card label { margin-top: 12px; }
+        .auth-card input, .auth-card select { margin-top: 4px; }
+        .auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--gray-500); }
+        .auth-toggle a { color: var(--primary); cursor: pointer; font-weight: 600; text-decoration: none; }
+        .auth-error { background: var(--danger-light); color: #991b1b; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-top: 12px; display: none; }
+        .role-select { display: flex; gap: 10px; margin-top: 8px; }
+        .role-option { flex: 1; padding: 12px; border: 2px solid var(--gray-200); border-radius: 8px; text-align: center; cursor: pointer; transition: all .15s; }
+        .role-option:hover { border-color: var(--primary); background: var(--primary-light); }
+        .role-option.selected { border-color: var(--primary); background: var(--primary-light); }
+        .role-option .role-icon { font-size: 24px; margin-bottom: 4px; }
+        .role-option .role-label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+
+        /* User bar */
+        .user-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: white; border-bottom: 1px solid var(--gray-200); font-size: 13px; }
+        .user-info { color: var(--gray-700); }
+        .user-info .role-badge { background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+        .logout-btn { color: var(--gray-500); cursor: pointer; font-size: 12px; border: none; background: none; }
+        .logout-btn:hover { color: var(--danger); }
+
         .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
         .lightbox.show { display: flex; }
         .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 8px; box-shadow: var(--shadow-lg); }
@@ -142,12 +167,51 @@
     </style>
 </head>
 <body>
+    <!-- Auth Screen -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-card">
+            <div class="auth-title" id="authTitle">登录</div>
+            <div class="auth-subtitle" id="authSubtitle">登录后开始使用错题本</div>
+            <div id="authForm">
+                <label>用户名</label>
+                <input id="authUsername" placeholder="请输入用户名" autocomplete="username">
+                <label>密码</label>
+                <input id="authPassword" type="password" placeholder="请输入密码" autocomplete="current-password">
+                <div id="roleSection" class="hidden">
+                    <label>选择角色</label>
+                    <div class="role-select">
+                        <div class="role-option selected" onclick="selectRole('parent')" id="role-parent">
+                            <div class="role-icon">👨‍👩‍👧</div>
+                            <div class="role-label">家长</div>
+                        </div>
+                        <div class="role-option" onclick="selectRole('student')" id="role-student">
+                            <div class="role-icon">🎓</div>
+                            <div class="role-label">学生</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="auth-error" id="authError"></div>
+                <button class="btn btn-primary" id="authBtn" onclick="doAuth()">登录</button>
+            </div>
+            <div class="auth-toggle">
+                <span id="authToggleText">没有账号？</span>
+                <a onclick="toggleAuthMode()" id="authToggleLink">注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+    <div class="user-bar">
+        <div class="user-info"><span id="displayUser"></span><span class="role-badge" id="displayRole"></span></div>
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
     <div class="header"><h1>错题本</h1></div>
 
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('recognize')">📷 拍照识别</div>
-        <div class="tab" onclick="switchTab('questions')">📋 错题管理</div>
-        <div class="tab" onclick="switchTab('review')">📖 复习</div>
+    <div class="tabs" id="tabsBar">
+        <div class="tab active" id="tab-recognize" onclick="switchTab('recognize')">📷 拍照识别</div>
+        <div class="tab" id="tab-questions" onclick="switchTab('questions')">📋 错题管理</div>
+        <div class="tab" id="tab-review" onclick="switchTab('review')">📖 复习</div>
     </div>
 
     <div class="page active" id="page-recognize">
@@ -213,11 +277,136 @@
         <div class="lightbox-close">&times;</div>
         <img id="lightboxImg" src="">
     </div>
+    </div><!-- end mainApp -->
 
     <script>
     const API = "https://hrlx9t2lub.execute-api.us-east-1.amazonaws.com/prod";
     let imageBase64 = null;
     let selectedIds = new Set();
+    let currentUser = null;
+    let isRegisterMode = false;
+    let selectedAuthRole = 'parent';
+
+    // --- Auth ---
+    async function checkAuth() {
+        const token = localStorage.getItem('cuotiben_token');
+        if (!token) { showAuth(); return; }
+        try {
+            const resp = await fetch(`${API}/auth/verify`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ token })
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                currentUser = data;
+                showApp();
+            } else {
+                localStorage.removeItem('cuotiben_token');
+                showAuth();
+            }
+        } catch(e) { showAuth(); }
+    }
+
+    function showAuth() {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+    }
+
+    function showApp() {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('displayUser').textContent = currentUser.username;
+        const roleMap = { parent: '家长', student: '学生' };
+        document.getElementById('displayRole').textContent = roleMap[currentUser.role] || currentUser.role;
+        applyRoleTabs();
+    }
+
+    function applyRoleTabs() {
+        const role = currentUser.role;
+        const tabRecognize = document.getElementById('tab-recognize');
+        const tabQuestions = document.getElementById('tab-questions');
+        const tabReview = document.getElementById('tab-review');
+        const pageRecognize = document.getElementById('page-recognize');
+        const pageQuestions = document.getElementById('page-questions');
+        const pageReview = document.getElementById('page-review');
+
+        if (role === 'student') {
+            tabRecognize.style.display = 'none';
+            tabQuestions.style.display = 'none';
+            tabReview.style.display = '';
+            pageRecognize.classList.remove('active');
+            pageQuestions.classList.remove('active');
+            switchTab('review');
+        } else {
+            tabRecognize.style.display = '';
+            tabQuestions.style.display = '';
+            tabReview.style.display = 'none';
+            pageReview.classList.remove('active');
+            switchTab('recognize');
+        }
+    }
+
+    function toggleAuthMode() {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById('authTitle').textContent = isRegisterMode ? '注册' : '登录';
+        document.getElementById('authSubtitle').textContent = isRegisterMode ? '创建账号开始使用' : '登录后开始使用错题本';
+        document.getElementById('authBtn').textContent = isRegisterMode ? '注册' : '登录';
+        document.getElementById('authToggleText').textContent = isRegisterMode ? '已有账号？' : '没有账号？';
+        document.getElementById('authToggleLink').textContent = isRegisterMode ? '登录' : '注册';
+        document.getElementById('roleSection').classList.toggle('hidden', !isRegisterMode);
+        document.getElementById('authError').style.display = 'none';
+    }
+
+    function selectRole(role) {
+        selectedAuthRole = role;
+        document.getElementById('role-parent').classList.toggle('selected', role === 'parent');
+        document.getElementById('role-student').classList.toggle('selected', role === 'student');
+    }
+
+    async function doAuth() {
+        const username = document.getElementById('authUsername').value.trim();
+        const password = document.getElementById('authPassword').value;
+        const errEl = document.getElementById('authError');
+        errEl.style.display = 'none';
+
+        if (!username || !password) { errEl.textContent = '请填写用户名和密码'; errEl.style.display = 'block'; return; }
+
+        const btn = document.getElementById('authBtn');
+        btn.disabled = true; btn.classList.add('loading');
+
+        try {
+            const url = isRegisterMode ? `${API}/auth/register` : `${API}/auth/login`;
+            const body = isRegisterMode
+                ? { username, password, role: selectedAuthRole }
+                : { username, password };
+            const resp = await fetch(url, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(body)
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                localStorage.setItem('cuotiben_token', data.token);
+                currentUser = { username: data.username, role: data.role };
+                showApp();
+            } else {
+                errEl.textContent = data.error || '操作失败';
+                errEl.style.display = 'block';
+            }
+        } catch(e) {
+            errEl.textContent = '网络错误';
+            errEl.style.display = 'block';
+        }
+        btn.disabled = false; btn.classList.remove('loading');
+    }
+
+    function logout() {
+        localStorage.removeItem('cuotiben_token');
+        currentUser = null;
+        showAuth();
+    }
+
+    // Init: check auth on page load
+    checkAuth();
 
     function switchTab(name) {
         document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['recognize','questions','review'][i]===name));
