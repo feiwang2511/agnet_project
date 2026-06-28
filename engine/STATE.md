@@ -6,9 +6,9 @@
 
 Profile：feature
 
-当前阶段：BUILD
+当前阶段：DONE
 
-已通过 Gates：G1, G2
+已通过 Gates：G1, G2, G3, G4
 
 开始时间：2026-06-27
 
@@ -28,11 +28,17 @@ Profile：feature
 
 无。
 
-## 下一步
+## G3 通过记录
 
-当前应产出：
+- [x] 代码文件存在（app/recognition/*.py）
+- [x] 测试存在且通过（22 tests passed）
+- [x] lint 通过（python3 -m py_compile 全部成功）
+- [x] 无硬编码 secrets（gate check passed）
+- [x] AWS 部署成功，集成测试全部通过
+- [x] Bedrock 识别端到端调用成功
 
-1. 按 `spec/recognize/plan.md` 执行 BUILD。
-2. 创建识别服务代码和测试。
-3. 运行 G3: BUILD -> VERIFY。
-4. G3 通过后，将当前阶段更新为 `VERIFY`。
+## 完成记录
+
+- G4 通过，任务完成。
+- 22 单元测试通过，5 集成测试通过，12 种主动破坏尝试全部按预期处理。
+- 已部署至 AWS Lambda + API Gateway，Bedrock 端到端调用成功。

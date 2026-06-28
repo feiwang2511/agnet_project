@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题本</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .tabs { display: flex; background: white; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 10; }
+        .tab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; transition: all .2s; }
+        .tab.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+        .page { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+        .page.active { display: block; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 12px; }
+        h2 { font-size: 18px; margin-bottom: 12px; color: #1a1a2e; }
+        .upload-area { border: 2px dashed #d0d5dd; border-radius: 8px; padding: 32px 16px; text-align: center; cursor: pointer; transition: all .2s; }
+        .upload-area:hover { border-color: #4f46e5; background: #f8f7ff; }
+        .upload-area.has-image { border-color: #10b981; background: #f0fdf4; padding: 8px; }
+        .preview-img { max-width: 100%; max-height: 200px; border-radius: 6px; }
+        .form-row { display: flex; gap: 10px; margin-top: 12px; }
+        .form-group { flex: 1; }
+        label { display: block; font-size: 12px; color: #666; margin-bottom: 3px; }
+        select, input, textarea { width: 100%; padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 14px; }
+        textarea { resize: vertical; min-height: 60px; }
+        .btn { display: block; width: 100%; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 14px; }
+        .btn:hover { background: #4338ca; }
+        .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; display: inline-block; margin: 4px 4px 4px 0; }
+        .btn-green { background: #10b981; }
+        .btn-green:hover { background: #059669; }
+        .btn-red { background: #ef4444; }
+        .btn-red:hover { background: #dc2626; }
+        .btn-outline { background: white; color: #4f46e5; border: 1px solid #4f46e5; }
+        .btn-outline:hover { background: #f8f7ff; }
+        .loading::after { content: ""; display: inline-block; width: 14px; height: 14px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; margin-left: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-confirmed { background: #dcfce7; color: #166534; }
+        .badge-needs { background: #fef3c7; color: #92400e; }
+        .badge-mastered { background: #dbeafe; color: #1e40af; }
+        .question-item { border-bottom: 1px solid #f0f0f0; padding: 12px 0; }
+        .question-item:last-child { border-bottom: none; }
+        .q-text { font-size: 14px; color: #1a1a2e; margin-bottom: 6px; }
+        .q-meta { font-size: 12px; color: #999; }
+        .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .tag { background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .conf-bar { height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 4px; width: 80px; display: inline-block; }
+        .conf-fill { height: 100%; border-radius: 2px; }
+        .empty { text-align: center; padding: 40px 20px; color: #999; }
+        .review-card { text-align: center; }
+        .review-card .q-text { font-size: 18px; margin: 20px 0; }
+        .review-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+        .review-actions .btn { width: auto; padding: 12px 32px; }
+        .streak-info { font-size: 13px; color: #666; margin-top: 8px; }
+        .result-box { margin-top: 12px; padding: 12px; border-radius: 8px; }
+        .result-success { background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .result-error { background: #fef2f2; border: 1px solid #fecaca; }
+        #fileInput { display: none; }
+        .hidden { display: none; }
+        .confirm-form { margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('recognize')">📷 拍照识别</div>
+        <div class="tab" onclick="switchTab('questions')">📋 错题管理</div>
+        <div class="tab" onclick="switchTab('review')">📖 复习</div>
+    </div>
+
+    <!-- Page 1: Recognize -->
+    <div class="page active" id="page-recognize">
+        <div class="card">
+            <h2>拍照识别</h2>
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size:36px;margin-bottom:8px">📄</div>
+                <div style="color:#666;font-size:13px">点击或拖拽上传题目图片<br><small>JPEG / PNG，最大 10MB</small></div>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>学科</label>
+                    <select id="subject">
+                        <option value="">不指定</option>
+                        <option value="math" selected>数学</option>
+                        <option value="physics">物理</option>
+                        <option value="chemistry">化学</option>
+                        <option value="english">英语</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>年级</label>
+                    <select id="grade">
+                        <option value="">不指定</option>
+                        <option value="grade_7" selected>七年级</option>
+                        <option value="grade_8">八年级</option>
+                        <option value="grade_9">九年级</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" id="recognizeBtn" disabled onclick="doRecognize()">开始识别</button>
+            <div id="recognizeResult"></div>
+        </div>
+    </div>
+
+    <!-- Page 2: Question Management -->
+    <div class="page" id="page-questions">
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <h2 style="margin:0">错题列表</h2>
+                <select id="statusFilter" onchange="loadQuestions()" style="width:auto;padding:6px 10px;font-size:13px">
+                    <option value="">全部</option>
+                    <option value="needs_confirmation">待确认</option>
+                    <option value="confirmed">已确认</option>
+                </select>
+            </div>
+            <div id="questionsList"><div class="empty">加载中...</div></div>
+        </div>
+    </div>
+
+    <!-- Page 3: Review -->
+    <div class="page" id="page-review">
+        <div class="card" id="reviewCard">
+            <h2>复习错题</h2>
+            <div id="reviewContent"><div class="empty">加载中...</div></div>
+        </div>
+    </div>
+
+    <script>
+    const API = "https://hrlx9t2lub.execute-api.us-east-1.amazonaws.com/prod";
+    let imageBase64 = null;
+
+    // --- Tab switching ---
+    function switchTab(name) {
+        document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['recognize','questions','review'][i]===name));
+        document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-'+name));
+        if (name === 'questions') loadQuestions();
+        if (name === 'review') loadReview();
+    }
+
+    // --- File upload ---
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); });
+    uploadArea.addEventListener('drop', e => { e.preventDefault(); if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', e => { if(e.target.files.length) handleFile(e.target.files[0]); });
+
+    function handleFile(file) {
+        if (!file.type.match(/^image\/(jpeg|png)$/)) return alert('请上传 JPEG 或 PNG');
+        if (file.size > 10*1024*1024) return alert('图片不能超过 10MB');
+        const reader = new FileReader();
+        reader.onload = e => {
+            imageBase64 = e.target.result.split(',')[1];
+            uploadArea.classList.add('has-image');
+            uploadArea.innerHTML = `<img class="preview-img" src="${e.target.result}">`;
+            document.getElementById('recognizeBtn').disabled = false;
+            document.getElementById('recognizeResult').innerHTML = '';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // --- Recognize ---
+    async function doRecognize() {
+        if (!imageBase64) return;
+        const btn = document.getElementById('recognizeBtn');
+        btn.disabled = true; btn.classList.add('loading'); btn.textContent = '识别中';
+        const body = { image: imageBase64 };
+        const subject = document.getElementById('subject').value;
+        const grade = document.getElementById('grade').value;
+        if (subject) body.subject = subject;
+        if (grade) body.grade = grade;
+
+        try {
+            const resp = await fetch(`${API}/recognize`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+            const data = await resp.json();
+            if (resp.ok) {
+                document.getElementById('recognizeResult').innerHTML = `
+                    <div class="result-box result-success">
+                        <strong>识别成功！</strong><br>
+                        <div style="margin-top:8px"><b>题目：</b>${esc(data.question_text)}</div>
+                        ${data.answer ? `<div><b>答案：</b>${esc(data.answer)}</div>` : ''}
+                        <div><b>知识点：</b>${(data.knowledge_points||[]).join('、')}</div>
+                        <div><b>置信度：</b>${Math.round(data.confidence*100)}% ·
+                            <span class="badge ${data.status==='confirmed'?'badge-confirmed':'badge-needs'}">${data.status==='confirmed'?'已确认':'待确认'}</span>
+                        </div>
+                        <div style="margin-top:8px;font-size:12px;color:#666">已保存，可在"错题管理"中查看</div>
+                    </div>`;
+            } else {
+                document.getElementById('recognizeResult').innerHTML = `<div class="result-box result-error"><strong>识别失败：</strong>${data.error?.message || '未知错误'}</div>`;
+            }
+        } catch(e) {
+            document.getElementById('recognizeResult').innerHTML = `<div class="result-box result-error"><strong>网络错误：</strong>${e.message}</div>`;
+        }
+        btn.disabled = false; btn.classList.remove('loading'); btn.textContent = '重新识别';
+    }
+
+    // --- Questions Management ---
+    async function loadQuestions() {
+        const filter = document.getElementById('statusFilter').value;
+        const url = filter ? `${API}/questions?status=${filter}` : `${API}/questions`;
+        try {
+            const resp = await fetch(url);
+            const data = await resp.json();
+            renderQuestions(data.questions || []);
+        } catch(e) {
+            document.getElementById('questionsList').innerHTML = `<div class="empty">加载失败</div>`;
+        }
+    }
+
+    function renderQuestions(questions) {
+        if (!questions.length) {
+            document.getElementById('questionsList').innerHTML = `<div class="empty">暂无错题<br><small>去"拍照识别"添加吧</small></div>`;
+            return;
+        }
+        let html = '';
+        for (const q of questions) {
+            const badge = q.status === 'confirmed'
+                ? '<span class="badge badge-confirmed">已确认</span>'
+                : '<span class="badge badge-needs">待确认</span>';
+            const mastery = q.mastery === 'mastered' ? ' <span class="badge badge-mastered">已掌握</span>' : '';
+            html += `<div class="question-item" id="qi-${q.question_id}">
+                <div class="q-text">${esc(q.question_text)} ${badge}${mastery}</div>
+                <div class="tags">${(q.knowledge_points||[]).map(k=>`<span class="tag">${esc(k)}</span>`).join('')}</div>
+                <div class="q-meta" style="margin-top:6px">
+                    ${q.answer ? '答案: '+esc(q.answer)+' · ' : ''}置信度: ${Math.round((q.confidence||0)*100)}%
+                    · 复习: ${q.review_count||0}次 · 连对: ${q.correct_streak||0}次
+                </div>
+                ${q.status === 'needs_confirmation' ? `
+                <div class="confirm-form" id="cf-${q.question_id}">
+                    <label>题目内容（可编辑）</label>
+                    <textarea id="ct-${q.question_id}">${esc(q.question_text)}</textarea>
+                    <label style="margin-top:8px">答案</label>
+                    <input id="ca-${q.question_id}" value="${esc(q.answer||'')}">
+                    <label style="margin-top:8px">知识点（逗号分隔）</label>
+                    <input id="ck-${q.question_id}" value="${(q.knowledge_points||[]).join(', ')}">
+                    <div style="margin-top:10px">
+                        <button class="btn btn-sm btn-green" onclick="confirmQ('${q.question_id}')">✓ 确认</button>
+                        <button class="btn btn-sm btn-red" onclick="discardQ('${q.question_id}')">✗ 放弃</button>
+                    </div>
+                </div>` : ''}
+            </div>`;
+        }
+        document.getElementById('questionsList').innerHTML = html;
+    }
+
+    async function confirmQ(id) {
+        const text = document.getElementById('ct-'+id).value.trim();
+        const answer = document.getElementById('ca-'+id).value.trim();
+        const kps = document.getElementById('ck-'+id).value.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
+        if (!text) return alert('题目内容不能为空');
+        if (!kps.length) return alert('至少输入一个知识点');
+        try {
+            const resp = await fetch(`${API}/questions/${id}/confirm`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ question_text: text, answer: answer||null, knowledge_points: kps })
+            });
+            if (resp.ok) loadQuestions();
+            else alert('确认失败');
+        } catch(e) { alert('网络错误'); }
+    }
+
+    async function discardQ(id) {
+        if (!confirm('确定放弃这道题吗？')) return;
+        try {
+            await fetch(`${API}/questions/${id}/discard`, { method:'POST' });
+            loadQuestions();
+        } catch(e) { alert('网络错误'); }
+    }
+
+    // --- Review ---
+    let reviewList = [];
+    let reviewIndex = 0;
+    let showingAnswer = false;
+
+    async function loadReview() {
+        try {
+            const resp = await fetch(`${API}/review`);
+            const data = await resp.json();
+            reviewList = data.questions || [];
+            reviewIndex = 0;
+            showingAnswer = false;
+            renderReview();
+        } catch(e) {
+            document.getElementById('reviewContent').innerHTML = `<div class="empty">加载失败</div>`;
+        }
+    }
+
+    function renderReview() {
+        if (!reviewList.length) {
+            document.getElementById('reviewContent').innerHTML = `<div class="empty">🎉 没有需要复习的题目<br><small>已确认的错题会出现在这里</small></div>`;
+            return;
+        }
+        const q = reviewList[reviewIndex];
+        const progress = `${reviewIndex+1} / ${reviewList.length}`;
+        document.getElementById('reviewContent').innerHTML = `
+            <div class="review-card">
+                <div class="q-meta">${progress} · ${(q.knowledge_points||[]).join('、')}</div>
+                <div class="q-text">${esc(q.question_text)}</div>
+                <div class="streak-info">已连续答对 ${q.correct_streak||0} 次（3次掌握）</div>
+                ${showingAnswer ? `
+                    <div style="margin:16px 0;padding:12px;background:#f8fafc;border-radius:8px;font-size:16px">
+                        <b>答案：</b>${esc(q.answer||'（未记录答案）')}
+                    </div>
+                    <div class="review-actions">
+                        <button class="btn btn-sm btn-green" onclick="submitReview('${q.question_id}',true)">✓ 答对了</button>
+                        <button class="btn btn-sm btn-red" onclick="submitReview('${q.question_id}',false)">✗ 答错了</button>
+                    </div>
+                ` : `
+                    <div class="review-actions">
+                        <button class="btn btn-sm btn-outline" onclick="showAnswer()">查看答案</button>
+                    </div>
+                `}
+            </div>`;
+    }
+
+    function showAnswer() {
+        showingAnswer = true;
+        renderReview();
+    }
+
+    async function submitReview(id, correct) {
+        try {
+            const resp = await fetch(`${API}/review/${id}`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ correct })
+            });
+            if (resp.ok) {
+                const updated = await resp.json();
+                if (updated.mastery === 'mastered') {
+                    reviewList.splice(reviewIndex, 1);
+                    if (reviewIndex >= reviewList.length) reviewIndex = 0;
+                } else {
+                    reviewList[reviewIndex] = updated;
+                    reviewIndex = (reviewIndex + 1) % reviewList.length;
+                }
+                showingAnswer = false;
+                renderReview();
+            }
+        } catch(e) { alert('网络错误'); }
+    }
+
+    function esc(t) { const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
+    </script>
+</body>
+</html>

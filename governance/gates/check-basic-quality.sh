@@ -18,7 +18,7 @@ echo "Python syntax check:"
 PY_FOUND=0
 while IFS= read -r -d '' file; do
   PY_FOUND=1
-  if ! python -m py_compile "$file"; then
+  if ! python3 -m py_compile "$file"; then
     echo "FAIL Python syntax: $file"
     FAIL=1
   fi

@@ -2,14 +2,24 @@
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "./hooks/on-session-start.sh"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/on-session-start.sh"
+          }
+        ]
       }
     ],
     "SessionEnd": [
       {
-        "type": "command",
-        "command": "./hooks/on-session-end.sh"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/on-session-end.sh"
+          }
+        ]
       }
     ]
   }
