@@ -1,0 +1,27 @@
+## Session Capture - 2026-06-27 14:00:00
+
+CORRECTION: settings.json hooks 格式必须使用 {matcher, hooks: [{type, command}]} wrapper 结构，不能使用裸对象。
+CORRECTION: 环境中没有 python 命令，必须使用 python3。
+DECISION: 使用 Bedrock inference profile ID `us.anthropic.claude-sonnet-4-20250514-v1:0` 而非短 model ID，因为短 ID 导致 ValidationException。
+DISCOVERY: AWS Lambda 部署 Python 包时必须用 --platform manylinux2014_x86_64 --only-binary=:all: 确保二进制兼容。
+
+## Session Capture - 2026-06-27 16:00:00
+
+CORRECTION: API Gateway HTTP API 必须使用 $default catch-all 路由才能让 Lambda 处理所有路径，单路由只匹配精确路径。
+CORRECTION: Mangum 需要设置 api_gateway_base_path="/prod" 来正确剥离 stage 前缀。
+DECISION: 使用 magic bytes 检测图片格式（JPEG: FF D8 FF, PNG: 89 50 4E 47），比依赖文件扩展名更可靠。
+DISCOVERY: Bedrock Claude 返回的 JSON 经常包裹在 markdown code fences 中（```json...```），需要 strip 后再解析。
+
+## Session Capture - 2026-06-28 09:00:00
+
+CORRECTION: FastAPI 必须添加 CORSMiddleware 才能处理浏览器跨域 OPTIONS preflight 请求，否则前端报 Failed to fetch。
+CORRECTION: DynamoDB 返回的 Decimal 类型不能直接 JSON 序列化，需要自定义 encoder 转换为 int/float。
+DECISION: 使用 DynamoDB 单表设计，partition key 为 question_id，通过 scan + filter 实现状态过滤。理由：错题量小，scan 成本可接受。
+DECISION: 掌握判定使用 correct_streak >= 3（连续答对 3 次），而非累计正确率。理由：连续正确比累计比例更能反映真实掌握。
+DISCOVERY: confidence 存储为 DynamoDB String（从 str(confidence) 得来），查询后需要在序列化层处理。
+
+## Session Capture - 2026-06-28 11:00:00
+
+DECISION: 完整业务流程部署为单一 Lambda 函数处理所有端点，而非每个端点一个 Lambda。理由：降低部署复杂度，错题本流量不大。
+DECISION: 前端使用纯 HTML + Vanilla JS 部署到 S3 静态网站，不使用 React。理由：功能简单，减少构建步骤，快速迭代。
+DISCOVERY: Fine-grained GitHub PAT 的 git push 权限需要 Contents: Read and write，即使 API 显示 push: true 也可能被拒绝。
