@@ -107,8 +107,9 @@ def recognize_endpoint(body: RecognizeRequestBody, request: Request):
         content_type = "image/png" if image_bytes[:4] == b"\x89PNG" else "image/jpeg"
         image_url = db.upload_image(question_id, image_bytes, content_type)
         db.update_image_url(question_id, image_url)
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.warning(f"Image upload failed for {question_id}: {type(e).__name__}")
 
     return JSONResponse(
         status_code=200,
